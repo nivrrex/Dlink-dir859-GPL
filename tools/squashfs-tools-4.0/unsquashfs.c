@@ -26,6 +26,7 @@
 #include "squashfs_compat.h"
 #include "uncompress.h"
 #include "read_fs.h"
+#include <sys/sysmacros.h>
 
 struct cache *fragment_cache, *data_cache;
 struct queue *to_reader, *to_deflate, *to_writer, *from_writer;
@@ -353,13 +354,13 @@ failed:
 	return NULL;
 }
 
-	
+
 void cache_block_ready(struct cache_entry *entry, int error)
 {
 	/*
 	 * mark cache entry as being complete, reading and (if necessary)
  	 * decompression has taken place, and the buffer is valid for use.
- 	 * If an error occurs reading or decompressing, the buffer also 
+ 	 * If an error occurs reading or decompressing, the buffer also
  	 * becomes ready but with an error...
  	 */
 	pthread_mutex_lock(&entry->cache->mutex);
@@ -459,7 +460,7 @@ int print_filename(char *pathname, struct inode *inode)
 		userstr = dummy;
 	} else
 		userstr = user->pw_name;
-		 
+
 	if((group = getgrgid(inode->gid)) == NULL) {
 		sprintf(dummy2, "%d", inode->gid);
 		groupstr = dummy2;
@@ -483,7 +484,7 @@ int print_filename(char *pathname, struct inode *inode)
 		case S_IFCHR:
 		case S_IFBLK:
 			padchars = TOTALCHARS - strlen(userstr) -
-				strlen(groupstr) - 7; 
+				strlen(groupstr) - 7;
 
 			printf("%*s%3d,%3d ", padchars > 0 ? padchars : 0, " ",
 				(int) inode->data >> 8, (int) inode->data &
@@ -498,10 +499,10 @@ int print_filename(char *pathname, struct inode *inode)
 	if((inode->mode & S_IFMT) == S_IFLNK)
 		printf(" -> %s", inode->symlink);
 	printf("\n");
-		
+
 	return 1;
 }
-	
+
 
 int add_entry(struct hash_table_entry *hash_table[], long long start, int bytes)
 {
@@ -573,13 +574,13 @@ int read_block(long long start, long long *next, char *block)
 {
 	unsigned short c_byte;
 	int offset = 2;
-	
+
 	if(swap) {
 		if(read_bytes(start, 2, block) == FALSE)
 			goto failed;
 		((unsigned char *) &c_byte)[1] = block[0];
-		((unsigned char *) &c_byte)[0] = block[1]; 
-	} else 
+		((unsigned char *) &c_byte)[0] = block[1];
+	} else
 		if(read_bytes(start, 2, (char *)&c_byte) == FALSE)
 			goto failed;
 
@@ -1514,7 +1515,7 @@ int read_super(char *source)
 		sBlk.guid_start = sBlk_3.guid_start_2;
 		sBlk.inode_table_start = sBlk_3.inode_table_start_2;
 		sBlk.directory_table_start = sBlk_3.directory_table_start_2;
-		
+
 		if(sBlk.s_major == 1) {
 			sBlk.block_size = sBlk_3.block_size_1;
 			sBlk.fragment_table_start = sBlk.uid_start;
@@ -1572,7 +1573,7 @@ struct pathname *process_extract_files(struct pathname *path, char *filename)
 	fclose(fd);
 	return path;
 }
-		
+
 
 /*
  * reader thread.  This thread processes read requests queued by the
@@ -1733,7 +1734,7 @@ void *deflator(void *arg)
 		 * block has been either successfully decompressed, or an error
  		 * occurred, clear pending flag, set error appropriately and
  		 * wake up any threads waiting on this block
- 		 */ 
+ 		 */
 		cache_block_ready(entry, res != Z_OK);
 	}
 }
@@ -1946,7 +1947,7 @@ int main(int argc, char *argv[])
 	root_process = geteuid() == 0;
 	if(root_process)
 		umask(0);
-	
+
 	for(i = 1; i < argc; i++) {
 		if(*argv[i] != '-')
 			break;
@@ -1973,7 +1974,7 @@ int main(int argc, char *argv[])
 			dest = argv[i];
 		} else if(strcmp(argv[i], "-processors") == 0 ||
 				strcmp(argv[i], "-p") == 0) {
-			if((++i == argc) || 
+			if((++i == argc) ||
 					(processors = strtol(argv[i], &b, 10),
 					*b != '\0')) {
 				ERROR("%s: -processors missing or invalid "

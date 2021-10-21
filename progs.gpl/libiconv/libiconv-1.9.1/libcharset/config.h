@@ -41,7 +41,7 @@
 #define HAVE_UNISTD_H 1
 
 /* Define to the value of ${prefix}, as a string. */
-#define INSTALLPREFIX "/home/jimmy_shen/gpl_Prac/dir859_redo/rootfs"
+#define INSTALLPREFIX "/home/xiang/dlink-dir859-gpl/rootfs"
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT ""
