@@ -23,6 +23,4 @@ cp -rf mips-gcc-4.3.3-uClibc-0.9.30 /opt
 ```
 source ./setupenv
 ./make3.81
-./make3.81
-./make3.81
 ```
