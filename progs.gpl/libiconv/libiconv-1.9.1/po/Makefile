@@ -18,7 +18,7 @@ srcdir = .
 top_srcdir = ..
 
 
-prefix = /home/jimmy_shen/gpl_Prac/dir859_redo/rootfs
+prefix = /home/xiang/dlink-dir859-gpl/rootfs
 exec_prefix = ${prefix}
 datadir = ${prefix}/share
 localedir = $(datadir)/locale
