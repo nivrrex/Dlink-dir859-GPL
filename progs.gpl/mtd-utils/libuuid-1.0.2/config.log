@@ -30,6 +30,7 @@ uname -v = #0~git20210908.34efa8c SMP PREEMPT Wed Sep 8 14:48:32 UTC 2021
 PATH: /opt/mips-gcc-4.3.3-uClibc-0.9.30/usr/bin
 PATH: /opt/mips-gcc-4.3.3-uClibc-0.9.30/usr/bin
 PATH: /opt/mips-gcc-4.3.3-uClibc-0.9.30/usr/bin
+PATH: /opt/mips-gcc-4.3.3-uClibc-0.9.30/usr/bin
 PATH: /root/.local/bin
 PATH: /usr/local/sbin
 PATH: /usr/local/bin

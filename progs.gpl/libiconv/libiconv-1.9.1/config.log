@@ -30,6 +30,7 @@ hostinfo               = unknown
 PATH: /opt/mips-gcc-4.3.3-uClibc-0.9.30/usr/bin
 PATH: /opt/mips-gcc-4.3.3-uClibc-0.9.30/usr/bin
 PATH: /opt/mips-gcc-4.3.3-uClibc-0.9.30/usr/bin
+PATH: /opt/mips-gcc-4.3.3-uClibc-0.9.30/usr/bin
 PATH: /root/.local/bin
 PATH: /usr/local/sbin
 PATH: /usr/local/bin
@@ -1096,9 +1097,9 @@ configure:23248: checking for unistd.h
 configure:23253: result: yes
 configure:23391: checking for canonicalize_file_name
 configure:23441: mips-linux-gcc -o conftest    conftest.c  >&5
-/tmp/ccgeKgM9.o: In function `main':
+/tmp/ccELgnko.o: In function `main':
 conftest.c:(.text+0x1c): undefined reference to `canonicalize_file_name'
-/tmp/ccgeKgM9.o:(.data.rel+0x0): undefined reference to `canonicalize_file_name'
+/tmp/ccELgnko.o:(.data.rel+0x0): undefined reference to `canonicalize_file_name'
 collect2: ld returned 1 exit status
 configure:23444: $? = 1
 configure: failed program was:
@@ -1279,9 +1280,9 @@ configure:24531: $? = 0
 configure:24542: result: yes
 configure:24549: checking for _doprnt
 configure:24599: mips-linux-gcc -o conftest    conftest.c  >&5
-/tmp/ccbCTwft.o: In function `main':
+/tmp/ccxeW0Bp.o: In function `main':
 conftest.c:(.text+0x1c): undefined reference to `_doprnt'
-/tmp/ccbCTwft.o:(.data.rel+0x0): undefined reference to `_doprnt'
+/tmp/ccxeW0Bp.o:(.data.rel+0x0): undefined reference to `_doprnt'
 collect2: ld returned 1 exit status
 configure:24602: $? = 1
 configure: failed program was:

@@ -10,9 +10,9 @@ INSTALL_ROOT=$(shell pwd)/install
 BUILD_IPTABLES_SHARED = n
 
 ifeq ($(strip $(ELBOX_USE_IPV6)),y)
-IPV6_PARAM := 
+IPV6_PARAM :=
 else
-IPV6_PARAM := --disable-ipv6 
+IPV6_PARAM := --disable-ipv6
 endif
 
 ifndef KERNEL_DIR
@@ -41,7 +41,7 @@ all:
 		echo -e "\033[32miptables-1.4.7 hasn't be config before, configuring...\033[0m"; \
 		cd $(IPTABLESPATH); echo -e "\033[32m$(CONFIGCMD)\033[0m"; $(CONFIGCMD); \
 	fi
-		
+
 	@echo -e "\033[32mCompiling iptables-1.4.7 ...\033[0m"
 	@make -C $(IPTABLESPATH)
 
@@ -65,8 +65,8 @@ endif
 endif
 	$(Q)$(STRIP) $(INSTALL_ROOT)/usr/sbin/ip*
 	cp -af $(INSTALL_ROOT)/usr/sbin/ip* $(TARGET)/usr/sbin/.
-	
-ifeq ($(strip $(ELBOX_IPTABLES_L7_EXT)),y)	
+
+ifeq ($(strip $(ELBOX_IPTABLES_L7_EXT)),y)
 	@echo Nothing to compile, just run \'make install\'
 	@echo \(This simply copies this directory into $(TARGET)/etc/l7-protocols \)
 	$(Q)mkdir -p $(TARGET)/etc/l7-protocols/protocols
