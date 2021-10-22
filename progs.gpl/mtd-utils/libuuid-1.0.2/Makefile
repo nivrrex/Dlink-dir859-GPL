@@ -161,29 +161,29 @@ distuninstallcheck_listfiles = find . -type f -print
 am__distuninstallcheck_listfiles = $(distuninstallcheck_listfiles) \
   | sed 's|^\./|$(prefix)/|' | grep -v '$(infodir)/dir$$'
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} ../../../progs.gpl/mtd-utils/libuuid-1.0.2/missing --run aclocal-1.12
+ACLOCAL = ${SHELL} /home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2/missing --run aclocal-1.12
 AMTAR = $${TAR-tar}
 AR = mips-linux-ar
-AUTOCONF = ${SHELL} ../../../progs.gpl/mtd-utils/libuuid-1.0.2/missing --run autoconf
-AUTOHEADER = ${SHELL} ../../../progs.gpl/mtd-utils/libuuid-1.0.2/missing --run autoheader
-AUTOMAKE = ${SHELL} ../../../progs.gpl/mtd-utils/libuuid-1.0.2/missing --run automake-1.12
+AUTOCONF = ${SHELL} /home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2/missing --run automake-1.12
 AWK = gawk
 CC = mips-linux-gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS =
+CFLAGS = 
 CPP = mips-linux-gcc -E
-CPPFLAGS =
+CPPFLAGS = 
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
 DLLTOOL = false
-DSYMUTIL =
-DUMPBIN =
-ECHO_C =
+DSYMUTIL = 
+DUMPBIN = 
+ECHO_C = 
 ECHO_N = -n
-ECHO_T =
+ECHO_T = 
 EGREP = /usr/bin/grep -E
-EXEEXT =
+EXEEXT = 
 FGREP = /usr/bin/grep -F
 GREP = /usr/bin/grep
 INSTALL = /usr/bin/install -c
@@ -192,54 +192,54 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LD = mips-linux-ld
-LDFLAGS = -L../../../progs.gpl/mtd-utils/libuuid-1.0.2/.libs
-LIBOBJS =
-LIBS =
+LDFLAGS = -L/home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2/.libs
+LIBOBJS = 
+LIBS = 
 LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIBUUID_VERSION = 1.0.2
 LIBUUID_VERSION_INFO = 1:0:0
-LIPO =
+LIPO = 
 LN_S = ln -s
-LTLIBOBJS =
-MAKEINFO = ${SHELL} ../../../progs.gpl/mtd-utils/libuuid-1.0.2/missing --run makeinfo
+LTLIBOBJS = 
+MAKEINFO = ${SHELL} /home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2/missing --run makeinfo
 MANIFEST_TOOL = :
 MKDIR_P = /usr/bin/mkdir -p
 NM = /opt/mips-gcc-4.3.3-uClibc-0.9.30/usr/bin/mips-linux-nm -B
-NMEDIT =
+NMEDIT = 
 OBJDUMP = mips-linux-objdump
 OBJEXT = o
-OTOOL =
-OTOOL64 =
+OTOOL = 
+OTOOL64 = 
 PACKAGE = libuuid
 PACKAGE_BUGREPORT = sloowfranklin@gmail.com
 PACKAGE_NAME = libuuid
 PACKAGE_STRING = libuuid 1.0.2
 PACKAGE_TARNAME = libuuid
-PACKAGE_URL =
+PACKAGE_URL = 
 PACKAGE_VERSION = 1.0.2
 PATH_SEPARATOR = :
 RANLIB = mips-linux-ranlib
 SED = /usr/bin/sed
-SET_MAKE =
+SET_MAKE = 
 SHELL = /bin/sh
-SOCKET_LIBS =
+SOCKET_LIBS = 
 STRIP = mips-linux-strip
 VERSION = 1.0.2
-abs_builddir = ../../../progs.gpl/mtd-utils/libuuid-1.0.2
-abs_srcdir = ../../../progs.gpl/mtd-utils/libuuid-1.0.2
-abs_top_builddir = ../../../progs.gpl/mtd-utils/libuuid-1.0.2
-abs_top_srcdir = ../../../progs.gpl/mtd-utils/libuuid-1.0.2
-ac_ct_AR =
-ac_ct_CC =
-ac_ct_DUMPBIN =
+abs_builddir = /home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2
+abs_srcdir = /home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2
+abs_top_builddir = /home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2
+abs_top_srcdir = /home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2
+ac_ct_AR = 
+ac_ct_CC = 
+ac_ct_DUMPBIN = 
 am__include = include
 am__leading_dot = .
-am__quote =
+am__quote = 
 am__tar = $${TAR-tar} chof - "$$tardir"
 am__untar = $${TAR-tar} xf -
 bindir = ${exec_prefix}/bin
 build = x86_64-unknown-linux-gnu
-build_alias =
+build_alias = 
 build_cpu = x86_64
 build_os = linux-gnu
 build_vendor = unknown
@@ -257,7 +257,7 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} ../../../progs.gpl/mtd-utils/libuuid-1.0.2/install-sh
+install_sh = ${SHELL} /home/xiang/dlink-dir859-gpl/progs.gpl/mtd-utils/libuuid-1.0.2/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -266,15 +266,15 @@ mandir = ${datarootdir}/man
 mkdir_p = /usr/bin/mkdir -p
 oldincludedir = /usr/include
 pdfdir = ${docdir}
-prefix = ../../../rootfs
+prefix = /home/xiang/dlink-dir859-gpl/rootfs
 program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
 sharedstatedir = ${prefix}/com
 srcdir = .
 sysconfdir = ${prefix}/etc
-target_alias =
-top_build_prefix =
+target_alias = 
+top_build_prefix = 
 top_builddir = .
 top_srcdir = .
 test_uuid_SOURCES = test_uuid.c
@@ -360,7 +360,7 @@ config.h: stamp-h1
 stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status config.h
-$(srcdir)/config.h.in:  $(am__configure_deps)
+$(srcdir)/config.h.in:  $(am__configure_deps) 
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
 	rm -f stamp-h1
 	touch $@
@@ -403,7 +403,7 @@ clean-libLTLIBRARIES:
 	  echo rm -f $${locs}; \
 	  rm -f $${locs}; \
 	}
-libuuid.la: $(libuuid_la_OBJECTS) $(libuuid_la_DEPENDENCIES) $(EXTRA_libuuid_la_DEPENDENCIES)
+libuuid.la: $(libuuid_la_OBJECTS) $(libuuid_la_DEPENDENCIES) $(EXTRA_libuuid_la_DEPENDENCIES) 
 	$(libuuid_la_LINK) -rpath $(libdir) $(libuuid_la_OBJECTS) $(libuuid_la_LIBADD) $(LIBS)
 
 clean-checkPROGRAMS:
@@ -414,7 +414,7 @@ clean-checkPROGRAMS:
 	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
 	echo " rm -f" $$list; \
 	rm -f $$list
-test_uuid$(EXEEXT): $(test_uuid_OBJECTS) $(test_uuid_DEPENDENCIES) $(EXTRA_test_uuid_DEPENDENCIES)
+test_uuid$(EXEEXT): $(test_uuid_OBJECTS) $(test_uuid_DEPENDENCIES) $(EXTRA_test_uuid_DEPENDENCIES) 
 	@rm -f test_uuid$(EXEEXT)
 	$(test_uuid_LINK) $(test_uuid_OBJECTS) $(test_uuid_LDADD) $(LIBS)
 
