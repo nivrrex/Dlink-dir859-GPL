@@ -7,8 +7,6 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
-#include <getopt.h>
 #include <xtables.h>
 #include <linux/netfilter_ipv6/ip6t_REJECT.h>
 
@@ -17,6 +15,10 @@ struct reject_names {
 	const char *alias;
 	enum ip6t_reject_with with;
 	const char *desc;
+};
+
+enum {
+	O_REJECT_WITH = 0,
 };
 
 static const struct reject_names reject_table[] = {
@@ -60,9 +62,9 @@ static void REJECT_help(void)
 	print_reject_types();
 }
 
-static const struct option REJECT_opts[] = {
-	{ "reject-with", 1, NULL, '1' },
-	{ .name = NULL }
+static const struct xt_option_entry REJECT_opts[] = {
+	{.name = "reject-with", .id = O_REJECT_WITH, .type = XTTYPE_STRING},
+	XTOPT_TABLEEND,
 };
 
 static void REJECT_init(struct xt_entry_target *t)
@@ -74,30 +76,22 @@ static void REJECT_init(struct xt_entry_target *t)
 
 }
 
-static int REJECT_parse(int c, char **argv, int invert, unsigned int *flags,
-                        const void *entry, struct xt_entry_target **target)
+static void REJECT_parse(struct xt_option_call *cb)
 {
-	struct ip6t_reject_info *reject = 
-		(struct ip6t_reject_info *)(*target)->data;
+	struct ip6t_reject_info *reject = cb->data;
 	unsigned int i;
 
-	switch(c) {
-	case '1':
-		if (xtables_check_inverse(optarg, &invert, NULL, 0, argv))
-			xtables_error(PARAMETER_PROBLEM,
-				   "Unexpected `!' after --reject-with");
-		for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
-			if ((strncasecmp(reject_table[i].name, optarg, strlen(optarg)) == 0)
-			    || (strncasecmp(reject_table[i].alias, optarg, strlen(optarg)) == 0)) {
-				reject->with = reject_table[i].with;
-				return 1;
-			}
-		xtables_error(PARAMETER_PROBLEM, "unknown reject type \"%s\"", optarg);
-	default:
-		/* Fall through */
-		break;
-	}
-	return 0;
+	xtables_option_parse(cb);
+	for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
+		if (strncasecmp(reject_table[i].name,
+		      cb->arg, strlen(cb->arg)) == 0 ||
+		    strncasecmp(reject_table[i].alias,
+		      cb->arg, strlen(cb->arg)) == 0) {
+			reject->with = reject_table[i].with;
+			return;
+		}
+	xtables_error(PARAMETER_PROBLEM,
+		"unknown reject type \"%s\"", cb->arg);
 }
 
 static void REJECT_print(const void *ip, const struct xt_entry_target *target,
@@ -110,7 +104,7 @@ static void REJECT_print(const void *ip, const struct xt_entry_target *target,
 	for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
 		if (reject_table[i].with == reject->with)
 			break;
-	printf("reject-with %s ", reject_table[i].name);
+	printf(" reject-with %s", reject_table[i].name);
 }
 
 static void REJECT_save(const void *ip, const struct xt_entry_target *target)
@@ -123,7 +117,7 @@ static void REJECT_save(const void *ip, const struct xt_entry_target *target)
 		if (reject_table[i].with == reject->with)
 			break;
 
-	printf("--reject-with %s ", reject_table[i].name);
+	printf(" --reject-with %s", reject_table[i].name);
 }
 
 static struct xtables_target reject_tg6_reg = {
@@ -134,10 +128,10 @@ static struct xtables_target reject_tg6_reg = {
 	.userspacesize 	= XT_ALIGN(sizeof(struct ip6t_reject_info)),
 	.help		= REJECT_help,
 	.init		= REJECT_init,
-	.parse		= REJECT_parse,
 	.print		= REJECT_print,
 	.save		= REJECT_save,
-	.extra_opts	= REJECT_opts,
+	.x6_parse	= REJECT_parse,
+	.x6_options	= REJECT_opts,
 };
 
 void _init(void)

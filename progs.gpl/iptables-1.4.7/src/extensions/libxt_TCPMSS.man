@@ -4,29 +4,20 @@ outgoing interface's MTU minus 40 for IPv4 or 60 for IPv6, respectively).
 Of course, it can only be used
 in conjunction with
 \fB\-p tcp\fP.
-It is only valid in the
-.BR mangle
-table.
-.br
+.PP
 This target is used to overcome criminally braindead ISPs or servers
 which block "ICMP Fragmentation Needed" or "ICMPv6 Packet Too Big"
 packets.  The symptoms of this
 problem are that everything works fine from your Linux
 firewall/router, but machines behind it can never exchange large
 packets:
-.PD 0
-.RS 0.1i
-.TP 0.3i
-1)
+.IP 1. 4
 Web browsers connect, then hang with no data received.
-.TP
-2)
+.IP 2. 4
 Small mail works fine, but large emails hang.
-.TP
-3)
+.IP 3. 4
 ssh works fine, but scp hangs after initial handshaking.
-.RE
-.PD
+.PP
 Workaround: activate this option and add a rule to your firewall
 configuration like:
 .IP

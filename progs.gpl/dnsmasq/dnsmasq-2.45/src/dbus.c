@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2007 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2011 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -10,16 +10,51 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
      
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "dnsmasq.h"
 
 #ifdef HAVE_DBUS
 
-#define DBUS_API_SUBJECT_TO_CHANGE
 #include <dbus/dbus.h>
+
+const char* introspection_xml =
+"<!DOCTYPE node PUBLIC \"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN\"\n"
+"\"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd\">\n"
+"<node name=\"" DNSMASQ_PATH "\">\n"
+"  <interface name=\"org.freedesktop.DBus.Introspectable\">\n"
+"    <method name=\"Introspect\">\n"
+"      <arg name=\"data\" direction=\"out\" type=\"s\"/>\n"
+"    </method>\n"
+"  </interface>\n"
+"  <interface name=\"" DNSMASQ_SERVICE "\">\n"
+"    <method name=\"ClearCache\">\n"
+"    </method>\n"
+"    <method name=\"GetVersion\">\n"
+"      <arg name=\"version\" direction=\"out\" type=\"s\"/>\n"
+"    </method>\n"
+"    <method name=\"SetServers\">\n"
+"      <arg name=\"servers\" direction=\"in\" type=\"av\"/>\n"
+"    </method>\n"
+"    <signal name=\"DhcpLeaseAdded\">\n"
+"      <arg name=\"ipaddr\" type=\"s\"/>\n"
+"      <arg name=\"hwaddr\" type=\"s\"/>\n"
+"      <arg name=\"hostname\" type=\"s\"/>\n"
+"    </signal>\n"
+"    <signal name=\"DhcpLeaseDeleted\">\n"
+"      <arg name=\"ipaddr\" type=\"s\"/>\n"
+"      <arg name=\"hwaddr\" type=\"s\"/>\n"
+"      <arg name=\"hostname\" type=\"s\"/>\n"
+"    </signal>\n"
+"    <signal name=\"DhcpLeaseUpdated\">\n"
+"      <arg name=\"ipaddr\" type=\"s\"/>\n"
+"      <arg name=\"hwaddr\" type=\"s\"/>\n"
+"      <arg name=\"hostname\" type=\"s\"/>\n"
+"    </signal>\n"
+"  </interface>\n"
+"</node>\n";
 
 struct watch {
   DBusWatch *watch;      
@@ -229,7 +264,15 @@ DBusHandlerResult message_handler(DBusConnection *connection,
 {
   char *method = (char *)dbus_message_get_member(message);
    
-  if (strcmp(method, "GetVersion") == 0)
+  if (dbus_message_is_method_call(message, DBUS_INTERFACE_INTROSPECTABLE, "Introspect"))
+    {
+      DBusMessage *reply = dbus_message_new_method_return(message);
+
+      dbus_message_append_args(reply, DBUS_TYPE_STRING, &introspection_xml, DBUS_TYPE_INVALID);
+      dbus_connection_send (connection, reply, NULL);
+      dbus_message_unref (reply);
+    }
+  else if (strcmp(method, "GetVersion") == 0)
     {
       char *v = VERSION;
       DBusMessage *reply = dbus_message_new_method_return(message);
@@ -283,7 +326,10 @@ char *dbus_init(void)
   daemon->dbus = connection; 
   
   if ((message = dbus_message_new_signal(DNSMASQ_PATH, DNSMASQ_SERVICE, "Up")))
-    dbus_connection_send(connection, message, NULL);
+    {
+      dbus_connection_send(connection, message, NULL);
+      dbus_message_unref(message);
+    }
 
   return NULL;
 }
@@ -298,11 +344,7 @@ void set_dbus_listeners(int *maxfdp,
     if (dbus_watch_get_enabled(w->watch))
       {
 	unsigned int flags = dbus_watch_get_flags(w->watch);
-#if (DBUS_MINOR > 0)
 	int fd = dbus_watch_get_unix_fd(w->watch);
-#else
-	int fd = dbus_watch_get_fd(w->watch);
-#endif
 	
 	bump_maxfd(fd, maxfdp);
 	
@@ -325,11 +367,7 @@ void check_dbus_listeners(fd_set *rset, fd_set *wset, fd_set *eset)
     if (dbus_watch_get_enabled(w->watch))
       {
 	unsigned int flags = 0;
-#if (DBUS_MINOR > 0)
 	int fd = dbus_watch_get_unix_fd(w->watch);
-#else
-	int fd = dbus_watch_get_fd(w->watch);
-#endif
 	
 	if (FD_ISSET(fd, rset))
 	  flags |= DBUS_WATCH_READABLE;
@@ -351,5 +389,50 @@ void check_dbus_listeners(fd_set *rset, fd_set *wset, fd_set *eset)
       dbus_connection_unref (connection);
     }
 }
+
+#ifdef HAVE_DHCP
+void emit_dbus_signal(int action, struct dhcp_lease *lease, char *hostname)
+{
+  DBusConnection *connection = (DBusConnection *)daemon->dbus;
+  DBusMessage* message = NULL;
+  DBusMessageIter args;
+  char *action_str, *addr, *mac = daemon->namebuff;
+  unsigned char *p;
+  int i;
+
+  if (!connection)
+    return;
+  
+  if (!hostname)
+    hostname = "";
+  
+  p = extended_hwaddr(lease->hwaddr_type, lease->hwaddr_len,
+		      lease->hwaddr, lease->clid_len, lease->clid, &i);
+  print_mac(mac, p, i);
+  
+  if (action == ACTION_DEL)
+    action_str = "DhcpLeaseDeleted";
+  else if (action == ACTION_ADD)
+    action_str = "DhcpLeaseAdded";
+  else if (action == ACTION_OLD)
+    action_str = "DhcpLeaseUpdated";
+  else
+    return;
+
+  addr = inet_ntoa(lease->addr);
+
+  if (!(message = dbus_message_new_signal(DNSMASQ_PATH, DNSMASQ_SERVICE, action_str)))
+    return;
+  
+  dbus_message_iter_init_append(message, &args);
+
+  if (dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &addr) &&
+      dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &mac) &&
+      dbus_message_iter_append_basic(&args, DBUS_TYPE_STRING, &hostname))
+    dbus_connection_send(connection, message, NULL);
+  
+  dbus_message_unref(message);
+}
+#endif
 
 #endif

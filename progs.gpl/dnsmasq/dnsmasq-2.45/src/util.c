@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2007 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2011 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -9,15 +9,13 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-     
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+      
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/* Some code in this file contributed by Rob Funk. */
-
 /* The SURF random number generator was taken from djbdns-1.05, by 
-   Daniel J Berstein, which is public domain. */
+   Daniel J Bernstein, which is public domain. */
 
 
 #include "dnsmasq.h"
@@ -26,6 +24,9 @@
 #include <sys/times.h>
 #endif
 
+#if defined(LOCALEDIR) || defined(HAVE_IDN)
+#include <idna.h>
+#endif
 
 #ifdef HAVE_ARC4RANDOM
 void rand_init(void)
@@ -42,11 +43,9 @@ unsigned short rand16(void)
 
 /* SURF random number generator */
 
-typedef unsigned int uint32;
-
-static uint32 seed[32];
-static uint32 in[12];
-static uint32 out[8];
+static u32 seed[32];
+static u32 in[12];
+static u32 out[8];
 
 void rand_init()
 {
@@ -65,7 +64,7 @@ void rand_init()
 
 static void surf(void)
 {
-  uint32 t[12]; uint32 x; uint32 sum = 0;
+  u32 t[12]; u32 x; u32 sum = 0;
   int r; int i; int loop;
 
   for (i = 0;i < 12;++i) t[i] = in[i] ^ seed[12 + i];
@@ -97,48 +96,110 @@ unsigned short rand16(void)
 
 #endif
 
-
-int legal_char(char c)
+static int check_name(char *in)
 {
-  /* check for legal char a-z A-Z 0-9 - 
-     (also / , used for RFC2317 and _ used in windows queries
-     and space, for DNS-SD stuff) */
-  if ((c >= 'A' && c <= 'Z') ||
-      (c >= 'a' && c <= 'z') ||
-      (c >= '0' && c <= '9') ||
-      c == '-' || c == '/' || c == '_' || c == ' ')
-    return 1;
-  
-  return 0;
-}
-  
-int canonicalise(char *s)
-{
-  /* check for legal chars and remove trailing . 
+  /* remove trailing . 
      also fail empty string and label > 63 chars */
-  size_t dotgap = 0, l = strlen(s);
+  size_t dotgap = 0, l = strlen(in);
   char c;
   int nowhite = 0;
-
+  
   if (l == 0 || l > MAXDNAME) return 0;
-
-  if (s[l-1] == '.')
+  
+  if (in[l-1] == '.')
     {
       if (l == 1) return 0;
-      s[l-1] = 0;
+      in[l-1] = 0;
     }
   
-  while ((c = *s))
+  for (; (c = *in); in++)
     {
       if (c == '.')
 	dotgap = 0;
-      else if (!legal_char(c) || (++dotgap > MAXLABEL))
+      else if (++dotgap > MAXLABEL)
 	return 0;
+      else if (isascii((unsigned char)c) && iscntrl((unsigned char)c)) 
+	/* iscntrl only gives expected results for ascii */
+	return 0;
+#if !defined(LOCALEDIR) && !defined(HAVE_IDN)
+      else if (!isascii((unsigned char)c))
+	return 0;
+#endif
       else if (c != ' ')
 	nowhite = 1;
-      s++;
     }
-  return nowhite;
+
+  if (!nowhite)
+    return 0;
+
+  return 1;
+}
+
+/* Hostnames have a more limited valid charset than domain names
+   so check for legal char a-z A-Z 0-9 - _ 
+   Note that this may receive a FQDN, so only check the first label 
+   for the tighter criteria. */
+int legal_hostname(char *name)
+{
+  char c;
+
+  if (!check_name(name))
+    return 0;
+
+  for (; (c = *name); name++)
+    /* check for legal char a-z A-Z 0-9 - _ . */
+    {
+      if ((c >= 'A' && c <= 'Z') ||
+	  (c >= 'a' && c <= 'z') ||
+	  (c >= '0' && c <= '9') ||
+	  c == '-' || c == '_')
+	continue;
+      
+      /* end of hostname part */
+      if (c == '.')
+	return 1;
+      
+      return 0;
+    }
+  
+  return 1;
+}
+  
+char *canonicalise(char *in, int *nomem)
+{
+  char *ret = NULL;
+#if defined(LOCALEDIR) || defined(HAVE_IDN)
+  int rc;
+#endif
+
+  if (nomem)
+    *nomem = 0;
+  
+  if (!check_name(in))
+    return NULL;
+  
+#if defined(LOCALEDIR) || defined(HAVE_IDN)
+  if ((rc = idna_to_ascii_lz(in, &ret, 0)) != IDNA_SUCCESS)
+    {
+      if (ret)
+	free(ret);
+
+      if (nomem && (rc == IDNA_MALLOC_ERROR || rc == IDNA_DLOPEN_ERROR))
+	{
+	  my_syslog(LOG_ERR, _("failed to allocate memory"));
+	  *nomem = 1;
+	}
+    
+      return NULL;
+    }
+#else
+  if ((ret = whine_malloc(strlen(in)+1)))
+    strcpy(ret, in);
+  else if (nomem)
+    *nomem = 1;    
+#endif
+
+  return ret;
 }
 
 unsigned char *do_rfc1035_name(unsigned char *p, char *sval)
@@ -259,53 +320,6 @@ int is_same_net(struct in_addr a, struct in_addr b, struct in_addr mask)
   return (a.s_addr & mask.s_addr) == (b.s_addr & mask.s_addr);
 } 
 
-#ifdef ALPHA_DNS_HELPER_SUPPORT
-/* For convenience print out v4/v6 address */
-void alpha_prettyprint_addr(struct all_addr addr, char *buf, int flags)
-{
-#ifdef HAVE_IPV6
-	if ( flags & F_IPV4) 
-		inet_ntop(  AF_INET , &addr.addr.addr4, buf, ADDRSTRLEN);
-	else
-		inet_ntop(  AF_INET6 , &addr.addr.addr6, buf, ADDRSTRLEN);
-#else
-	strncpy(buf, inet_ntoa(addr.addr.addr4), ADDRSTRLEN);
-#endif
-}
-
-void alpha_system2(const char *cmd, int rep_stdin, int rep_stdout, int rep_stderr)
-{
-	/* backup current stdin/out/error */
-	int tmp_stdin, tmp_stdout, tmp_stderr;
-
-	tmp_stdin = dup(STDIN_FILENO);
-	tmp_stdout = dup(STDOUT_FILENO);
-	tmp_stderr = dup(STDERR_FILENO);
-
-	/* replace ccurrent stdin/out/error with rep_stdin, rep_stdout and rep_stderr */
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
-	dup2(rep_stdin, STDIN_FILENO);
-	dup2(rep_stdout, STDOUT_FILENO);
-	dup2(rep_stderr, STDERR_FILENO);
-
-	system(cmd);
-	
-	/* restore */
-	close(STDIN_FILENO);
-	close(STDOUT_FILENO);
-	close(STDERR_FILENO);
-	dup2(tmp_stdin, STDIN_FILENO);
-	dup2(tmp_stdout, STDOUT_FILENO);
-	dup2(tmp_stderr, STDERR_FILENO);
-	close(tmp_stdin);
-	close(tmp_stdout);
-	close(tmp_stderr);
-}
-
-#endif
-
 /* returns port number from address */
 int prettyprint_addr(union mysockaddr *addr, char *buf)
 {
@@ -319,7 +333,15 @@ int prettyprint_addr(union mysockaddr *addr, char *buf)
     }
   else if (addr->sa.sa_family == AF_INET6)
     {
+      char name[IF_NAMESIZE];
       inet_ntop(AF_INET6, &addr->in6.sin6_addr, buf, ADDRSTRLEN);
+      if (addr->in6.sin6_scope_id != 0 &&
+	  if_indextoname(addr->in6.sin6_scope_id, name) &&
+	  strlen(buf) + strlen(name) + 2 <= ADDRSTRLEN)
+	{
+	  strcat(buf, "%");
+	  strcat(buf, name);
+	}
       port = ntohs(addr->in6.sin6_port);
     }
 #else
@@ -349,7 +371,8 @@ void prettyprint_time(char *buf, unsigned int t)
 }
 
 
-/* in may equal out, when maxlen may be -1 (No max len). */
+/* in may equal out, when maxlen may be -1 (No max len). 
+   Return -1 for extraneous no-hex chars found. */
 int parse_hex(char *in, unsigned char *out, int maxlen, 
 	      unsigned int *wildcard_mask, int *mac_type)
 {
@@ -361,7 +384,10 @@ int parse_hex(char *in, unsigned char *out, int maxlen,
   
   while (maxlen == -1 || i < maxlen)
     {
-      for (r = in; *r != 0 && *r != ':' && *r != '-'; r++);
+      for (r = in; *r != 0 && *r != ':' && *r != '-'; r++)
+	if (*r != '*' && !isxdigit((unsigned char)*r))
+	  return -1;
+      
       if (*r == 0)
 	maxlen = i;
       
@@ -393,14 +419,19 @@ int parse_hex(char *in, unsigned char *out, int maxlen,
   return i;
 }
 
+/* return 0 for no match, or (no matched octets) + 1 */
 int memcmp_masked(unsigned char *a, unsigned char *b, int len, unsigned int mask)
 {
-  int i;
-  for (i = len - 1; i >= 0; i--, mask = mask >> 1)
-    if (!(mask & 1) && a[i] != b[i])
-      return 0;
-
-  return 1;
+  int i, count;
+  for (count = 1, i = len - 1; i >= 0; i--, mask = mask >> 1)
+    if (!(mask & 1))
+      {
+	if (a[i] == b[i])
+	  count++;
+	else
+	  return 0;
+      }
+  return count;
 }
 
 /* _note_ may copy buffer */

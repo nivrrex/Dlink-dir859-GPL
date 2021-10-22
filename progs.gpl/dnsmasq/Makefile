@@ -8,9 +8,9 @@ PREFIX=/usr/sbin
 
 SRC	= dnsmasq-2.45/src
 VPATH = ./$(SRC)
-OBJS = cache.o rfc1035.o util.o option.o forward.o isc.o network.o \
+OBJS = cache.o rfc1035.o util.o option.o forward.o network.o \
        dnsmasq.o dhcp.o lease.o rfc2131.o netlink.o dbus.o bpf.o \
-       helper.o tftp.o log.o
+       helper.o tftp.o log.o conntrack.o
 
 ifeq ($(strip $(ELBOX_PROGS_GPL_DNSMASQ_HAVE_BROKEN_RTC)),y)
 COPTS += -DHAVE_BROKEN_RTC
@@ -55,7 +55,7 @@ install: all
 ifeq ($(strip $(ELBOX_PROGS_GPL_NETSNIPER)),y)
 	$(Q)cp -f ./dnsmasq-2.45/src/url.txt $(TARGET)/etc/
 endif
-	$(Q)cp -f ./dnsmasq $(TARGET)$(PREFIX) 
+	$(Q)cp -f ./dnsmasq $(TARGET)$(PREFIX)
 	$(Q)chmod +x $(TARGET)$(PREFIX)/dnsmasq
 
 clean:

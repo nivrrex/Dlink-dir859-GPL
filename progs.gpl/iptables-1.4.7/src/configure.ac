@@ -1,8 +1,8 @@
 
-AC_INIT([iptables], [1.4.7])
+AC_INIT([iptables], [1.4.11.1])
 
 # See libtool.info "Libtool's versioning system"
-libxtables_vcurrent=4
+libxtables_vcurrent=6
 libxtables_vage=0
 
 AC_CONFIG_HEADERS([config.h])
@@ -37,6 +37,11 @@ AC_ARG_ENABLE([ipv4],
 AC_ARG_ENABLE([ipv6],
 	AS_HELP_STRING([--disable-ipv6], [Do not build ip6tables]),
 	[enable_ipv6="$enableval"], [enable_ipv6="yes"])
+AC_ARG_ENABLE([largefile],
+	AS_HELP_STRING([--disable-largefile], [Do not build largefile support]),
+	[enable_largefile="$enableval"],
+	[enable_largefile="yes";
+	largefile_cppflags='-D_LARGEFILE_SOURCE=1 -D_LARGE_FILES -D_FILE_OFFSET_BITS=64'])
 AC_ARG_ENABLE([devel],
 	AS_HELP_STRING([--enable-devel],
 	[Install Xtables development headers]),
@@ -47,46 +52,66 @@ AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
 	[Path to the pkgconfig directory [[LIBDIR/pkgconfig]]]),
 	[pkgconfigdir="$withval"], [pkgconfigdir='${libdir}/pkgconfig'])
 
-AC_CHECK_HEADER([linux/dccp.h])
+libiptc_LDFLAGS2="";
+AX_CHECK_LINKER_FLAGS([-Wl,--no-as-needed],
+	[libiptc_LDFLAGS2="-Wl,--no-as-needed"])
+AC_SUBST([libiptc_LDFLAGS2])
 
 blacklist_modules="";
+
+AC_CHECK_HEADER([linux/dccp.h])
 if test "$ac_cv_header_linux_dccp_h" != "yes"; then
 	blacklist_modules="$blacklist_modules dccp";
 fi;
+
+AC_CHECK_HEADER([linux/ip_vs.h])
+if test "$ac_cv_header_linux_ip_vs_h" != "yes"; then
+	blacklist_modules="$blacklist_modules ipvs";
+fi;
+
 AC_SUBST([blacklist_modules])
 
 AM_CONDITIONAL([ENABLE_STATIC], [test "$enable_static" = "yes"])
 AM_CONDITIONAL([ENABLE_SHARED], [test "$enable_shared" = "yes"])
 AM_CONDITIONAL([ENABLE_IPV4], [test "$enable_ipv4" = "yes"])
 AM_CONDITIONAL([ENABLE_IPV6], [test "$enable_ipv6" = "yes"])
+AM_CONDITIONAL([ENABLE_LARGEFILE], [test "$enable_largefile" = "yes"])
 AM_CONDITIONAL([ENABLE_DEVEL], [test "$enable_devel" = "yes"])
 AM_CONDITIONAL([ENABLE_LIBIPQ], [test "$enable_libipq" = "yes"])
 
-regular_CFLAGS="-D_LARGEFILE_SOURCE=1 -D_LARGE_FILES -D_FILE_OFFSET_BITS=64 \
-	-D_REENTRANT -Wall -Waggregate-return -Wmissing-declarations \
+PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >= 1.0],
+	[nfnetlink=1], [nfnetlink=0])
+AM_CONDITIONAL([HAVE_LIBNFNETLINK], [test "$nfnetlink" = 1])
+
+regular_CFLAGS="-Wall -Waggregate-return -Wmissing-declarations \
 	-Wmissing-prototypes -Wredundant-decls -Wshadow -Wstrict-prototypes \
-	-Winline -pipe \
+	-Winline -pipe";
+regular_CPPFLAGS="${largefile_cppflags} -D_REENTRANT \
 	-DXTABLES_LIBDIR=\\\"\${xtlibdir}\\\" -DXTABLES_INTERNAL";
-kinclude_CFLAGS="";
+kinclude_CPPFLAGS="";
 if [[ -n "$kbuilddir" ]]; then
-	kinclude_CFLAGS="$kinclude_CFLAGS -I $kbuilddir/include";
+	kinclude_CPPFLAGS="$kinclude_CPPFLAGS -I$kbuilddir/include";
 fi;
 if [[ -n "$ksourcedir" ]]; then
-	kinclude_CFLAGS="$kinclude_CFLAGS -I $ksourcedir/include";
+	kinclude_CPPFLAGS="$kinclude_CPPFLAGS -I$ksourcedir/include";
 fi;
+pkgdatadir='${datadir}/xtables';
 
 AC_SUBST([regular_CFLAGS])
-AC_SUBST([kinclude_CFLAGS])
+AC_SUBST([regular_CPPFLAGS])
+AC_SUBST([kinclude_CPPFLAGS])
 AC_SUBST([kbuilddir])
 AC_SUBST([ksourcedir])
 AC_SUBST([xtlibdir])
 AC_SUBST([pkgconfigdir])
+AC_SUBST([pkgdatadir])
 AC_SUBST([libxtables_vcurrent])
 AC_SUBST([libxtables_vage])
 libxtables_vmajor=$(($libxtables_vcurrent - $libxtables_vage));
 AC_SUBST([libxtables_vmajor])
 
 AC_CONFIG_FILES([Makefile extensions/GNUmakefile include/Makefile
-	libipq/Makefile
-	include/xtables.h include/iptables/internal.h libiptc.pc xtables.pc])
+	iptables/Makefile iptables/xtables.pc
+	libipq/Makefile libiptc/Makefile libiptc/libiptc.pc utils/Makefile
+	include/xtables.h include/iptables/internal.h])
 AC_OUTPUT

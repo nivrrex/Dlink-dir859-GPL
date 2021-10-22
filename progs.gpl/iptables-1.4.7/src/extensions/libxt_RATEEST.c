@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -31,10 +32,10 @@ enum RATEEST_options {
 };
 
 static const struct option RATEEST_opts[] = {
-	{ "rateest-name",	1, NULL, RATEEST_OPT_NAME },
-	{ "rateest-interval",	1, NULL, RATEEST_OPT_INTERVAL },
-	{ "rateest-ewmalog",	1, NULL, RATEEST_OPT_EWMALOG },
-	{ .name = NULL },
+	{.name = "rateest-name",     .has_arg = true, .val = RATEEST_OPT_NAME},
+	{.name = "rateest-interval", .has_arg = true, .val = RATEEST_OPT_INTERVAL},
+	{.name = "rateest-ewmalog",  .has_arg = true, .val = RATEEST_OPT_EWMALOG},
+	XT_GETOPT_TABLEEND,
 };
 
 /* Copied from iproute */
@@ -74,18 +75,11 @@ RATEEST_print_time(unsigned int time)
 	double tmp = time;
 
 	if (tmp >= TIME_UNITS_PER_SEC)
-		printf("%.1fs ", tmp/TIME_UNITS_PER_SEC);
+		printf(" %.1fs", tmp / TIME_UNITS_PER_SEC);
 	else if (tmp >= TIME_UNITS_PER_SEC/1000)
-		printf("%.1fms ", tmp/(TIME_UNITS_PER_SEC/1000));
+		printf(" %.1fms", tmp / (TIME_UNITS_PER_SEC / 1000));
 	else
-		printf("%uus ", time);
-}
-
-static void
-RATEEST_init(struct xt_entry_target *target)
-{
-	interval = 0;
-	ewma_log = 0;
+		printf(" %uus", time);
 }
 
 static int
@@ -129,9 +123,6 @@ RATEEST_parse(int c, char **argv, int invert, unsigned int *flags,
 				   "RATEEST: bad ewmalog value `%s'", optarg);
 
 		break;
-
-	default:
-		return 0;
 	}
 
 	return 1;
@@ -181,10 +172,10 @@ __RATEEST_print(const struct xt_entry_target *target, const char *prefix)
 	local_interval = (TIME_UNITS_PER_SEC << (info->interval + 2)) / 4;
 	local_ewma_log = local_interval * (1 << (info->ewma_log));
 
-	printf("%sname %s ", prefix, info->name);
-	printf("%sinterval ", prefix);
+	printf(" %sname %s", prefix, info->name);
+	printf(" %sinterval", prefix);
 	RATEEST_print_time(local_interval);
-	printf("%sewmalog ", prefix);
+	printf(" %sewmalog", prefix);
 	RATEEST_print_time(local_ewma_log);
 }
 
@@ -208,7 +199,6 @@ static struct xtables_target rateest_tg_reg = {
 	.size		= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
 	.userspacesize	= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
 	.help		= RATEEST_help,
-	.init		= RATEEST_init,
 	.parse		= RATEEST_parse,
 	.final_check	= RATEEST_final_check,
 	.print		= RATEEST_print,

@@ -1,4 +1,4 @@
-/* dnsmasq is Copyright (c) 2000-2007 Simon Kelley
+/* dnsmasq is Copyright (c) 2000-2011 Simon Kelley
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -10,8 +10,8 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
      
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "dnsmasq.h"
@@ -30,7 +30,12 @@
 #  include <linux/if_addr.h>
 #endif
 
+#ifndef NDA_RTA
+#  define NDA_RTA(r) ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct ndmsg)))) 
+#endif 
+
 static struct iovec iov;
+static u32 netlink_pid;
 
 static void nl_err(struct nlmsghdr *h);
 static void nl_routechange(struct nlmsghdr *h);
@@ -38,6 +43,7 @@ static void nl_routechange(struct nlmsghdr *h);
 void netlink_init(void)
 {
   struct sockaddr_nl addr;
+  socklen_t slen = sizeof(addr);
 
   addr.nl_family = AF_NETLINK;
   addr.nl_pad = 0;
@@ -59,59 +65,75 @@ void netlink_init(void)
 	}
     }
   
-  if (daemon->netlinkfd == -1)
+  if (daemon->netlinkfd == -1 || 
+      getsockname(daemon->netlinkfd, (struct sockaddr *)&addr, &slen) == 1)
     die(_("cannot create netlink socket: %s"), NULL, EC_MISC);
+   
+  /* save pid assigned by bind() and retrieved by getsockname() */ 
+  netlink_pid = addr.nl_pid;
   
-  iov.iov_len = 200;
+  iov.iov_len = 100;
   iov.iov_base = safe_malloc(iov.iov_len);
 }
 
 static ssize_t netlink_recv(void)
 {
   struct msghdr msg;
+  struct sockaddr_nl nladdr;
   ssize_t rc;
 
-  msg.msg_control = NULL;
-  msg.msg_controllen = 0;
-  msg.msg_name = NULL;
-  msg.msg_namelen = 0;
-  msg.msg_iov = &iov;
-  msg.msg_iovlen = 1;
-    
   while (1)
     {
+      msg.msg_control = NULL;
+      msg.msg_controllen = 0;
+      msg.msg_name = &nladdr;
+      msg.msg_namelen = sizeof(nladdr);
+      msg.msg_iov = &iov;
+      msg.msg_iovlen = 1;
       msg.msg_flags = 0;
-      while ((rc = recvmsg(daemon->netlinkfd, &msg, MSG_PEEK)) == -1 && errno == EINTR);
       
-      /* 2.2.x doesn't suport MSG_PEEK at all, returning EOPNOTSUPP, so we just grab a 
-	 big buffer and pray in that case. */
-      if (rc == -1 && errno == EOPNOTSUPP)
+      while ((rc = recvmsg(daemon->netlinkfd, &msg, MSG_PEEK | MSG_TRUNC)) == -1 && errno == EINTR);
+      
+      /* make buffer big enough */
+      if (rc != -1 && (msg.msg_flags & MSG_TRUNC))
 	{
-	  if (!expand_buf(&iov, 2000))
-	    return -1;
-	  break;
+	  /* Very new Linux kernels return the actual size needed, older ones always return truncated size */
+	  if ((size_t)rc == iov.iov_len)
+	    {
+	      if (expand_buf(&iov, rc + 100))
+		continue;
+	    }
+	  else
+	    expand_buf(&iov, rc);
 	}
-      
-      if (rc == -1 || !(msg.msg_flags & MSG_TRUNC))
-        break;
-            
-      if (!expand_buf(&iov, iov.iov_len + 100))
-	return -1;
-    }
 
-  /* finally, read it for real */
-  while ((rc = recvmsg(daemon->netlinkfd, &msg, 0)) == -1 && errno == EINTR);
+      /* read it for real */
+      msg.msg_flags = 0;
+      while ((rc = recvmsg(daemon->netlinkfd, &msg, 0)) == -1 && errno == EINTR);
+      
+      /* Make sure this is from the kernel */
+      if (rc == -1 || nladdr.nl_pid == 0)
+	break;
+    }
+      
+  /* discard stuff which is truncated at this point (expand_buf() may fail) */
+  if (msg.msg_flags & MSG_TRUNC)
+    {
+      rc = -1;
+      errno = ENOMEM;
+    }
   
   return rc;
 }
   
-int iface_enumerate(void *parm, int (*ipv4_callback)(), int (*ipv6_callback)())
+
+/* family = AF_UNSPEC finds ARP table entries. */
+int iface_enumerate(int family, void *parm, int (*callback)())
 {
   struct sockaddr_nl addr;
   struct nlmsghdr *h;
   ssize_t len;
   static unsigned int seq = 0;
-  int family = AF_INET;
 
   struct {
     struct nlmsghdr nlh;
@@ -125,7 +147,7 @@ int iface_enumerate(void *parm, int (*ipv4_callback)(), int (*ipv6_callback)())
 
  again:
   req.nlh.nlmsg_len = sizeof(req);
-  req.nlh.nlmsg_type = RTM_GETADDR;
+  req.nlh.nlmsg_type = family == AF_UNSPEC ? RTM_GETNEIGH : RTM_GETADDR;
   req.nlh.nlmsg_flags = NLM_F_ROOT | NLM_F_MATCH | NLM_F_REQUEST | NLM_F_ACK; 
   req.nlh.nlmsg_pid = 0;
   req.nlh.nlmsg_seq = ++seq;
@@ -141,70 +163,97 @@ int iface_enumerate(void *parm, int (*ipv4_callback)(), int (*ipv6_callback)())
   while (1)
     {
       if ((len = netlink_recv()) == -1)
-	return 0;
-  
+	{
+	  if (errno == ENOBUFS)
+	    {
+	      sleep(1);
+	      goto again;
+	    }
+	  return 0;
+	}
+
       for (h = (struct nlmsghdr *)iov.iov_base; NLMSG_OK(h, (size_t)len); h = NLMSG_NEXT(h, len))
- 	if (h->nlmsg_type == NLMSG_ERROR)
-	  nl_err(h);
-	else if (h->nlmsg_seq != seq)
+	if (h->nlmsg_seq != seq || h->nlmsg_pid != netlink_pid)
 	  nl_routechange(h); /* May be multicast arriving async */
+	else if (h->nlmsg_type == NLMSG_ERROR)
+	  nl_err(h);
 	else if (h->nlmsg_type == NLMSG_DONE)
-	  {
-#ifdef HAVE_IPV6
-	    if (family == AF_INET && ipv6_callback)
-	      {
-		family = AF_INET6;
-		goto again;
-	      }
-#endif
-	    return 1;
-	  }
-	else if (h->nlmsg_type == RTM_NEWADDR)
+	  return 1;
+	else if (h->nlmsg_type == RTM_NEWADDR && family != AF_UNSPEC)
 	  {
 	    struct ifaddrmsg *ifa = NLMSG_DATA(h);  
 	    struct rtattr *rta = IFA_RTA(ifa);
 	    unsigned int len1 = h->nlmsg_len - NLMSG_LENGTH(sizeof(*ifa));
 	    
-	    if (ifa->ifa_family == AF_INET)
+	    if (ifa->ifa_family == family)
 	      {
-		struct in_addr netmask, addr, broadcast;
-		
-		netmask.s_addr = htonl(0xffffffff << (32 - ifa->ifa_prefixlen));
-		addr.s_addr = 0;
-		broadcast.s_addr = 0;
-		
-		while (RTA_OK(rta, len1))
+		if (ifa->ifa_family == AF_INET)
 		  {
-		    if (rta->rta_type == IFA_LOCAL)
-		      addr = *((struct in_addr *)(rta+1));
-		    else if (rta->rta_type == IFA_BROADCAST)
-		      broadcast = *((struct in_addr *)(rta+1));
+		    struct in_addr netmask, addr, broadcast;
 		    
-		    rta = RTA_NEXT(rta, len1);
+		    netmask.s_addr = htonl(0xffffffff << (32 - ifa->ifa_prefixlen));
+		    addr.s_addr = 0;
+		    broadcast.s_addr = 0;
+		    
+		    while (RTA_OK(rta, len1))
+		      {
+			if (rta->rta_type == IFA_LOCAL)
+			  addr = *((struct in_addr *)(rta+1));
+			else if (rta->rta_type == IFA_BROADCAST)
+			  broadcast = *((struct in_addr *)(rta+1));
+			
+			rta = RTA_NEXT(rta, len1);
+		      }
+		    
+		    if (addr.s_addr)
+		      if (!((*callback)(addr, ifa->ifa_index, netmask, broadcast, parm)))
+			return 0;
 		  }
-		
-		if (addr.s_addr && ipv4_callback)
-		  if (!((*ipv4_callback)(addr, ifa->ifa_index, netmask, broadcast, parm)))
-		    return 0;
-	      }
 #ifdef HAVE_IPV6
-	    else if (ifa->ifa_family == AF_INET6)
-	      {
-		struct in6_addr *addrp = NULL;
-		while (RTA_OK(rta, len1))
+		else if (ifa->ifa_family == AF_INET6)
 		  {
-		    if (rta->rta_type == IFA_ADDRESS)
-		      addrp = ((struct in6_addr *)(rta+1)); 
+		    struct in6_addr *addrp = NULL;
+		    while (RTA_OK(rta, len1))
+		      {
+			if (rta->rta_type == IFA_ADDRESS)
+			  addrp = ((struct in6_addr *)(rta+1)); 
+			
+			rta = RTA_NEXT(rta, len1);
+		      }
 		    
-		    rta = RTA_NEXT(rta, len1);
+		    if (addrp)
+		      if (!((*callback)(addrp, ifa->ifa_index, 
+					ifa->ifa_index, ifa->ifa_flags & IFA_F_TENTATIVE, parm)))
+			return 0;
+		  }
+#endif
+	      }
+	  }
+	else if (h->nlmsg_type == RTM_NEWNEIGH && family == AF_UNSPEC)
+	  {
+	    struct ndmsg *neigh = NLMSG_DATA(h);  
+	    struct rtattr *rta = NDA_RTA(neigh);
+	    unsigned int len1 = h->nlmsg_len - NLMSG_LENGTH(sizeof(*neigh));
+	    size_t maclen = 0;
+	    char *inaddr = NULL, *mac = NULL;
+	    
+	    while (RTA_OK(rta, len1))
+	      {
+		if (rta->rta_type == NDA_DST)
+		  inaddr = (char *)(rta+1);
+		else if (rta->rta_type == NDA_LLADDR)
+		  {
+		    maclen = rta->rta_len - sizeof(struct rtattr);
+		    mac = (char *)(rta+1);
 		  }
 		
-		if (addrp && ipv6_callback)
-		  if (!((*ipv6_callback)(addrp, ifa->ifa_index, ifa->ifa_index, parm)))
-		    return 0;
+		rta = RTA_NEXT(rta, len1);
 	      }
-#endif
-	  }
+
+	    if (inaddr && mac)
+	      if (!((*callback)(neigh->ndm_family, inaddr, mac, maclen, parm)))
+		return 0;
+	  }	
     }
 }
 
@@ -212,6 +261,12 @@ void netlink_multicast(void)
 {
   ssize_t len;
   struct nlmsghdr *h;
+  int flags;
+  
+  /* don't risk blocking reading netlink messages here. */
+  if ((flags = fcntl(daemon->netlinkfd, F_GETFL)) == -1 ||
+      fcntl(daemon->netlinkfd, F_SETFL, flags | O_NONBLOCK) == -1) 
+    return;
   
   if ((len = netlink_recv()) != -1)
     {
@@ -221,11 +276,15 @@ void netlink_multicast(void)
 	else
 	  nl_routechange(h);
     }
+
+  /* restore non-blocking status */
+  fcntl(daemon->netlinkfd, F_SETFL, flags); 
 }
 
 static void nl_err(struct nlmsghdr *h)
 {
   struct nlmsgerr *err = NLMSG_DATA(h);
+  
   if (err->error != 0)
     my_syslog(LOG_ERR, _("netlink returns error: %s"), strerror(-(err->error)));
 }
@@ -234,10 +293,10 @@ static void nl_err(struct nlmsghdr *h)
    If this happens and we still have a DNS packet in the buffer, we re-send it.
    This helps on DoD links, where frequently the packet which triggers dialling is
    a DNS query, which then gets lost. By re-sending, we can avoid the lookup
-   failing. */ 
+   failing. Note that we only accept these messages from the kernel (pid == 0) */ 
 static void nl_routechange(struct nlmsghdr *h)
 {
-  if (h->nlmsg_type == RTM_NEWROUTE && daemon->srv_save)
+  if (h->nlmsg_pid == 0 && h->nlmsg_type == RTM_NEWROUTE)
     {
       struct rtmsg *rtm = NLMSG_DATA(h);
       int fd;
@@ -245,17 +304,24 @@ static void nl_routechange(struct nlmsghdr *h)
       if (rtm->rtm_type != RTN_UNICAST || rtm->rtm_scope != RT_SCOPE_LINK)
 	return;
 
-      if (daemon->srv_save->sfd)
-	fd = daemon->srv_save->sfd->fd;
-      else if (daemon->rfd_save && daemon->rfd_save->refcount != 0)
-	fd = daemon->rfd_save->fd;
-      else
-	return;
-
-      while(sendto(fd, daemon->packet, daemon->packet_len, 0,
-		   &daemon->srv_save->addr.sa, sa_len(&daemon->srv_save->addr)) == -1 && retry_send()); 
+      /* Force re-reading resolv file right now, for luck. */
+      daemon->last_resolv = 0;
+      
+      if (daemon->srv_save)
+	{
+	  if (daemon->srv_save->sfd)
+	    fd = daemon->srv_save->sfd->fd;
+	  else if (daemon->rfd_save && daemon->rfd_save->refcount != 0)
+	    fd = daemon->rfd_save->fd;
+	  else
+	    return;
+	  
+	  while(sendto(fd, daemon->packet, daemon->packet_len, 0,
+		       &daemon->srv_save->addr.sa, sa_len(&daemon->srv_save->addr)) == -1 && retry_send()); 
+	}
     }
 }
+
 #endif
 
       
