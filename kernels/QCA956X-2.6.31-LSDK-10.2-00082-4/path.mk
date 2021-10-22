@@ -1,1 +1,1 @@
-/home/xiang/dlink-dir859-gpl/path.mk
+/home/xiang/dir859_redo/path.mk

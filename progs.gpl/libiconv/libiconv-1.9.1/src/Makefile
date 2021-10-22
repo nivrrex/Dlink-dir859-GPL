@@ -7,7 +7,7 @@ srcdir = .
 top_srcdir = ..
 
 # Directories used by "make install":
-prefix = /home/xiang/dlink-dir859-gpl/rootfs
+prefix = /home/jimmy_shen/gpl_Prac/dir859_redo/rootfs
 local_prefix = /usr/local
 exec_prefix = ${prefix}
 bindir = ${exec_prefix}/bin

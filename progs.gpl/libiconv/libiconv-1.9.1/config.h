@@ -211,7 +211,7 @@
 /* #undef ICONV_CONST */
 
 /* Define to the value of ${prefix}, as a string. */
-#define INSTALLPREFIX "/home/xiang/dlink-dir859-gpl/rootfs"
+#define INSTALLPREFIX "/home/jimmy_shen/gpl_Prac/dir859_redo/rootfs"
 
 /* Name of package */
 #define PACKAGE "libiconv"

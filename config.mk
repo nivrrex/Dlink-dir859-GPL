@@ -1,1 +1,1 @@
-/home/xiang/dlink-dir859-gpl/boards/wrgac37/config.mk
+/home/xiang/dir859_redo/boards/wrgac37/config.mk
