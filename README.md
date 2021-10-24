@@ -15,7 +15,10 @@ cd dlink-dir859-gpl
 
 #root
 ```
-apt install libc6-i386 fakeroot -y
+dpkg --add-architecture i386
+apt-get update
+apt-get install -y libelf1:i386 libelf-dev:i386
+apt install libc6-i386 fakeroot default-jre -y
 cp -rf mips-gcc-4.3.3-uClibc-0.9.30 /opt
 ```
 
