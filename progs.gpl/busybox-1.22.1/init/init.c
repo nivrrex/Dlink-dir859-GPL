@@ -147,6 +147,8 @@
 # define INIT_SCRIPT  "/etc/init.d/rcS"
 #endif
 
+#define DEV_CONSOLE     "/dev/console"
+
 /* Each type of actions can appear many times. They will be
  * handled in order. RESTART is an exception, only 1st is used.
  */
@@ -669,13 +671,17 @@ static void parse_inittab(void)
 	
 	#if ELBOX_PROGS_PRIV_CONSOLE_AP3X_CMDLINE
 		new_init_action(ASKFIRST, "/usr/sbin/cli", ELBOX_PROGS_GPL_DEV_RUN_SHELL_PATH);
+	#elif CONFIG_RGBIN_LOGIN_NAME_PASSWORD
+		new_init_action(ASKFIRST, "/usr/sbin/login name password -u", ELBOX_PROGS_GPL_DEV_RUN_SHELL_PATH);
 	#else
 		//fix bug for Ctrl+C not effect at console, 2010-01-29
 		new_init_action(ASKFIRST, bb_default_login_shell, ELBOX_PROGS_GPL_DEV_RUN_SHELL_PATH);
 	#endif
 
 	#else
-		new_init_action(ASKFIRST, bb_default_login_shell, "");
+		//+++ siyou, I haven't understand why this can work for ctrl-c.
+		//new_init_action(ASKFIRST, bb_default_login_shell, "");
+		new_init_action(ASKFIRST, bb_default_login_shell, DEV_CONSOLE);
 	#endif
 #endif
 //TODO: VC_1 instead of ""? "" is console -> ctty problems -> angry users

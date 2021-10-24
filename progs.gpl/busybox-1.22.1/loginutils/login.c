@@ -474,7 +474,9 @@ int login_main(int argc UNUSED_PARAM, char **argv)
 	if (ENABLE_LOGIN_SCRIPTS && run_by_root)
 		run_login_script(pw, full_tty);
 
+#ifndef ELBOX_NECPF_FEATURE
 	change_identity(pw);
+#endif
 	setup_environment(pw->pw_shell,
 			(!(opt & LOGIN_OPT_p) * SETUP_ENV_CLEARENV) + SETUP_ENV_CHANGEENV,
 			pw);
@@ -523,7 +525,11 @@ int login_main(int argc UNUSED_PARAM, char **argv)
 	signal(SIGINT, SIG_DFL);
 
 	/* Exec login shell with no additional parameters */
+#ifdef ELBOX_NECPF_FEATURE
+	run_shell("usr/sbin/clicmd", 1, NULL, NULL);
+#else
 	run_shell(pw->pw_shell, 1, NULL, NULL);
+#endif
 
 	/* return EXIT_FAILURE; - not reached */
 }

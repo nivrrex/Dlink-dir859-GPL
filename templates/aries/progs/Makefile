@@ -193,13 +193,13 @@ ifeq ($(strip $(ELBOX_PROGS_GPL_BUSYBOX_1_22_1)),y)
 else
 	$(call TurnOn,CONFIG_GETOPT_LONG)
 endif
-	
+
 
 .PHONY: patch_cc_prefix disable_static enable_mdev enable_fancy_ping enable_user_management
 .PHONY: disable_iproute2 enable_tftp disable_bzip2 disable_2_4_modules enable_storage_support enable_wget
 #####################################################################
 
-# If model have private config file for busybox, then use it. 
+# If model have private config file for busybox, then use it.
 # Else, use common config file(progs.tempates/busybox-xxx).
 define PickConfig
 	if [ -f $(TOPDIR)/progs.brand/$(ELBOX_MODEL_NAME)/$(1) ]; then\
@@ -220,7 +220,7 @@ bb_setup:
 bb_setup_1_11_1:
 	@echo -e "\033[32mSetup busybox v1.11.1 configuration ...\033[0m"
 	$(Q)$(call PickConfig,busybox-1.11.1.config)
-		
+
 bb_setup_1_14_1:
 	@echo -e "\033[32mSetup busybox v1.14.1 configuration ...\033[0m"
 	$(Q)$(call PickConfig,busybox-1.14.1.config)
@@ -235,7 +235,7 @@ bb_setup_1_18_1:
 	$(Q)sed -e 's|@@CFLAGS@@|$(CFLAGS) -I$(TOPDIR)/include|' $(BBCONF) -i $(BBCONF)
 
 bb_setup_1_22_1:
-	@echo -e "\033[32mSetup busybox v1.14.1 configuration ...\033[0m"
+	@echo -e "\033[32mSetup busybox v1.22.1 configuration ...\033[0m"
 	$(Q)$(call PickConfig,busybox-1.22.1.config)
 	$(Q)sed -e 's|@@CFLAGS@@|$(CFLAGS)|' $(BBCONF) -i $(BBCONF)
 

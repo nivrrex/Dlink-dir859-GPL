@@ -1,0 +1,80 @@
+Module name: iptables
+
+Module version: 1.4.21
+
+Copyright:
+Copyright (c) 2000-2001 Netfilter Core Team	
+(C) 2000-2003, 2005 by Harald Welte <laforge@gnumonks.org>	
+Copyright (C) 1989, 1991, 1992-2012 Free Software Foundation, Inc.	
+(C) 2000-2002 by the netfilter coreteam <coreteam@netfilter.org>: Paul 'Rusty' Russell <rusty@rustcorp.com.au> Marc Boucher <marc+nf@mbsi.ca> James Morris <jmorris@intercode.com.au> Harald Welte <laforge@gnumonks.org> Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>	
+Copyright (C) 2000-2002 Joakim Axelsson <gozem@linux.nu> Patrick Schaaf <bof@bof.de> Martin Josefsson <gandalf@wlug.westbo.se>	
+Copyright (C) 1996-2001, 2003-2011 Free Software Foundation, Inc. Written by Gordon Matzigkeit
+(c) Eychenne <rv@wallfire.org>	
+Copyright Google, Inc. 2013 
+Copyright c CC Computer Consultants GmbH, 2007-2008 Jan Engelhardt <jengelh@computergmbh.de>	
+Copyright (C) 2006 Red Hat, Inc., James Morris <jmorris@redhat.com>	
+Copyright (c) 2003-2013 Patrick McHardy <kaber@trash.net>	
+Copyright (C) 2003-2010 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>	
+(C) 2002,2004 MARA Systems AB <http://www.marasystems.com> by Henrik Nordstrom <hno@marasystems.com>	
+(C) 2001 Marc Boucher (marc@mbsi.ca).	
+(C) 2000 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>	
+(C) 2000-2002 by Harald Welte <laforge@gnumonks.org> based on previous code from Rusty Russell <rusty@linuxcare.com.au>	
+Copyright c Sebastian Clasen <sebastian.classen [at] freenet.ag>, 2007 Jan Engelhardt <jengelh [at] medozas de>, 2007 - 2010	
+Copyright c Martin F. Krafft <madduck@madduck.net> 
+Copyright c Jan Engelhardt, 2011	
+copyright interest in the program Gnomovision' (which makes passes at compilers) written by James Hacker.	
+Copyright c CC Computer Consultants GmbH, 2007 Contact: Jan Engelhardt <jengelh@medozas.de>	
+Copyright (C) 2010 Nokia Corporation. All rights reserved.	
+Copyright (C) 2010, 2012 Free Software Foundation, Inc. Written by Peter Rosin <peda@lysator.liu.se>.	
+Copyright (c) 2009 Steven G. Johnson <stevenj@alum.mit.edu>	
+Copyright (c) 2009 Mike Frysinger <vapier@gentoo.org>	
+Copyright (c) 2009 Matteo Frigo	
+Copyright (c) 2007 Sven Schnelle <svens@bitebene.org>	
+Copyright (C) 2007 BalaBit IT Ltd.	
+Copyright (C) 2006 USAGI/WIDE Project	
+Copyright (c) 2005 Evgeniy Polyakov <johnpol@2ka.mxt.ru>	
+Copyright (C) 2004, 2010 Nokia Corporation Written by Timo Teras <ext-timo.teras@nokia.com>	
+Copyright (C) 2004, 2005, 2007, 2009 Free Software Foundation, Inc. Written by Scott James Remnant, 2004.	
+Copyright (C) 2004, 2005, 2007, 2008, 2009 Free Software Foundation, Inc. Written by Gary V. Vaughan, 2004	
+Copyright (c) 2003+ Evgeniy Polyakov <zbr@ioremap.net>	
+Copyright (c) 2003+ Evgeniy Polyakov <johnpol@2ka.mxt.ru>	
+Copyright (C) 2003-2011 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>	
+Copyright (C) 2002-2008 BalaBit IT Ltd.	
+Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com> by Henrik Nordstrom <hno@marasystems.com>	
+Copyright (c) 2000 Marc Boucher	
+Copyright (C) 2000 Emmanuel Roger <winfield@freegates.be>	
+Copyright (C) 1999, 2000, 2003, 2004, 2005, 2009, 2010, 2012 Free Software Foundation, Inc. Written by Tom Tromey <tromey@cygnus.com>.	
+Copyright (C) 1996, 1997, 1999, 2000, 2002-2006, 2008-2012 Free Software Foundation, Inc. Originally by Fran,cois Pinard <pinard@iro.umontreal.ca>, 1996.	
+Copyright (C) 1994 X Consortium	
+copyright by Martin F. Krafft. PP This manual page was written by Martin F. Krafft <madduck@madduck.net> PP Permission is granted to copy, distribute and/or modify this document under the terms of the Artistic License 2.0.
+Copyright c 2004 Scott James Remnant <scott@netsplit.com>.	
+(C) Copyright 2003 by Mike Frantzen <frantzen@w4g.org>	
+(C) Copyright 2000-2003 by Michal Zalewski <lcamtuf@coredump.cx>	
+(C) 2009, 2011, 2012 by Pablo Neira Ayuso <pablo@netfilter.org>	
+(C) 2012 by Hans Schillstrom <hans.schillstrom@ericsson.com>	
+(C) 2011 by Intra2Net AG <http://www.intra2net.com>	
+(C) 2010 by Red Hat, Inc Author: Michael S. Tsirkin <mst@redhat.com>	
+(C) 2010-2011 Thomas Graf <tgraf@redhat.com>	
+(C) 2010-2011 Red Hat, Inc.	
+(C) 2009 Kwest Wan <kwest_wan@cn.alphanetworks.com>	
+(C) 2008 Adam Nielsen <a.nielsen@shikadi.net>	
+(C) 2006 Ufo Mechanic <azez@ufomechanic.net>	
+(C) 2000, 2002-2005 by Harald Welte <laforge@netfilter.org>	
+(C) 2002 by Don Cohen <don-netf@isis.cs3-inc.com> 
+(C) 2000 James Morris
+(C) 2000 by Matthew G. Marsh <mgm@paktronix.com> 
+(C) 2000-2006 by the netfilter coreteam <coreteam@netfilter.org>
+(C) 2000-2002 by Matthew G. Marsh <mgm@paktronix.com>, Harald Welte <laforge@gnumonks.org>	
+(C) 1999 by Paul 'Rusty' Russell <rusty@rustcorp.com.au> 
+
+License type: GPL, GPLv2
+
+Download URL:
+http://www.netfilter.org/downloads.html
+
+Changes:
+Modify the source code to fit the needs and requirements of the products
+
+Last change date: @@modday@@
+
+------------------------------------------------------------------------

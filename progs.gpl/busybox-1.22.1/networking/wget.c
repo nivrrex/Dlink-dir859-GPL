@@ -10,91 +10,91 @@
  */
 
 //config:config WGET
-//config:	bool "wget"
-//config:	default y
-//config:	help
-//config:	  wget is a utility for non-interactive download of files from HTTP
-//config:	  and FTP servers.
+//config:       bool "wget"
+//config:       default y
+//config:       help
+//config:         wget is a utility for non-interactive download of files from HTTP
+//config:         and FTP servers.
 //config:
 //config:config FEATURE_WGET_STATUSBAR
-//config:	bool "Enable a nifty process meter (+2k)"
-//config:	default y
-//config:	depends on WGET
-//config:	help
-//config:	  Enable the transfer progress bar for wget transfers.
+//config:       bool "Enable a nifty process meter (+2k)"
+//config:       default y
+//config:       depends on WGET
+//config:       help
+//config:         Enable the transfer progress bar for wget transfers.
 //config:
 //config:config FEATURE_WGET_AUTHENTICATION
-//config:	bool "Enable HTTP authentication"
-//config:	default y
-//config:	depends on WGET
-//config:	help
-//config:	  Support authenticated HTTP transfers.
+//config:       bool "Enable HTTP authentication"
+//config:       default y
+//config:       depends on WGET
+//config:       help
+//config:         Support authenticated HTTP transfers.
 //config:
 //config:config FEATURE_WGET_LONG_OPTIONS
-//config:	bool "Enable long options"
-//config:	default y
-//config:	depends on WGET && LONG_OPTS
-//config:	help
-//config:	  Support long options for the wget applet.
+//config:       bool "Enable long options"
+//config:       default y
+//config:       depends on WGET && LONG_OPTS
+//config:       help
+//config:         Support long options for the wget applet.
 //config:
 //config:config FEATURE_WGET_TIMEOUT
-//config:	bool "Enable timeout option -T SEC"
-//config:	default y
-//config:	depends on WGET
-//config:	help
-//config:	  Supports network read and connect timeouts for wget,
-//config:	  so that wget will give up and timeout, through the -T
-//config:	  command line option.
+//config:       bool "Enable timeout option -T SEC"
+//config:       default y
+//config:       depends on WGET
+//config:       help
+//config:         Supports network read and connect timeouts for wget,
+//config:         so that wget will give up and timeout, through the -T
+//config:         command line option.
 //config:
-//config:	  Currently only connect and network data read timeout are
-//config:	  supported (i.e., timeout is not applied to the DNS query). When
-//config:	  FEATURE_WGET_LONG_OPTIONS is also enabled, the --timeout option
-//config:	  will work in addition to -T.
+//config:         Currently only connect and network data read timeout are
+//config:         supported (i.e., timeout is not applied to the DNS query). When
+//config:         FEATURE_WGET_LONG_OPTIONS is also enabled, the --timeout option
+//config:         will work in addition to -T.
 //config:
 //config:config FEATURE_WGET_OPENSSL
-//config:	bool "Try to connect to HTTPS using openssl"
-//config:	default y
-//config:	depends on WGET
-//config:	help
-//config:	  Choose how wget establishes SSL connection for https:// URLs.
+//config:       bool "Try to connect to HTTPS using openssl"
+//config:       default y
+//config:       depends on WGET
+//config:       help
+//config:         Choose how wget establishes SSL connection for https:// URLs.
 //config:
-//config:	  Busybox itself contains no SSL code. wget will spawn
-//config:	  a helper program to talk over HTTPS.
+//config:         Busybox itself contains no SSL code. wget will spawn
+//config:         a helper program to talk over HTTPS.
 //config:
-//config:	  OpenSSL has a simple SSL client for debug purposes.
-//config:	  If you select "openssl" helper, wget will effectively call
-//config:	  "openssl s_client -quiet -connect IP:443 2>/dev/null"
-//config:	  and pipe its data through it.
-//config:	  Note inconvenient API: host resolution is done twice,
-//config:	  and there is no guarantee openssl's idea of IPv6 address
-//config:	  format is the same as ours.
-//config:	  Another problem is that s_client prints debug information
-//config:	  to stderr, and it needs to be suppressed. This means
-//config:	  all error messages get suppressed too.
-//config:	  openssl is also a big binary, often dynamically linked
-//config:	  against ~15 libraries.
+//config:         OpenSSL has a simple SSL client for debug purposes.
+//config:         If you select "openssl" helper, wget will effectively call
+//config:         "openssl s_client -quiet -connect IP:443 2>/dev/null"
+//config:         and pipe its data through it.
+//config:         Note inconvenient API: host resolution is done twice,
+//config:         and there is no guarantee openssl's idea of IPv6 address
+//config:         format is the same as ours.
+//config:         Another problem is that s_client prints debug information
+//config:         to stderr, and it needs to be suppressed. This means
+//config:         all error messages get suppressed too.
+//config:         openssl is also a big binary, often dynamically linked
+//config:         against ~15 libraries.
 //config:
 //config:config FEATURE_WGET_SSL_HELPER
-//config:	bool "Try to connect to HTTPS using ssl_helper"
-//config:	default y
-//config:	depends on WGET
-//config:	help
-//config:	  Choose how wget establishes SSL connection for https:// URLs.
+//config:       bool "Try to connect to HTTPS using ssl_helper"
+//config:       default y
+//config:       depends on WGET
+//config:       help
+//config:         Choose how wget establishes SSL connection for https:// URLs.
 //config:
-//config:	  Busybox itself contains no SSL code. wget will spawn
-//config:	  a helper program to talk over HTTPS.
+//config:         Busybox itself contains no SSL code. wget will spawn
+//config:         a helper program to talk over HTTPS.
 //config:
-//config:	  ssl_helper is a tool which can be built statically
-//config:	  from busybox sources against a small embedded SSL library.
-//config:	  Please see networking/ssl_helper/README.
-//config:	  It does not require double host resolution and emits
-//config:	  error messages to stderr.
+//config:         ssl_helper is a tool which can be built statically
+//config:         from busybox sources against a small embedded SSL library.
+//config:         Please see networking/ssl_helper/README.
+//config:         It does not require double host resolution and emits
+//config:         error messages to stderr.
 //config:
-//config:	  Precompiled static binary may be available at
-//config:	  http://busybox.net/downloads/binaries/
-
+//config:         Precompiled static binary may be available at
+//config:         http://busybox.net/downloads/binaries/
+ 
 //applet:IF_WGET(APPLET(wget, BB_DIR_USR_BIN, BB_SUID_DROP))
-
+  
 //kbuild:lib-$(CONFIG_WGET) += wget.o
 
 //usage:#define wget_trivial_usage
@@ -103,7 +103,7 @@
 //usage:       "	[--header 'header: value'] [-Y|--proxy on/off] [-P DIR]\n"
 /* Since we ignore these opts, we don't show them in --help */
 /* //usage:    "	[--no-check-certificate] [--no-cache] [--passive-ftp] [-t TRIES]" */
-/* //usage:    "	[-nv] [-nc] [-nH] [-np]" */
+/* //usage:    "        [-nv] [-nc] [-nH] [-np]" */
 //usage:       "	[-U|--user-agent AGENT]" IF_FEATURE_WGET_TIMEOUT(" [-T SEC]") " URL..."
 //usage:	)
 //usage:	IF_NOT_FEATURE_WGET_LONG_OPTIONS(
@@ -169,7 +169,7 @@ static const char wget_user_headers[] ALIGN1 =
 	"Authorization:\0"
 	"Proxy-Authorization:\0"
 # endif
-	;
+;
 # define USR_HEADER_HOST       (G.user_headers & HDR_HOST)
 # define USR_HEADER_USER_AGENT (G.user_headers & HDR_USER_AGENT)
 # define USR_HEADER_RANGE      (G.user_headers & HDR_RANGE)
@@ -182,6 +182,7 @@ static const char wget_user_headers[] ALIGN1 =
 # define USR_HEADER_AUTH       0
 # define USR_HEADER_PROXY_AUTH 0
 #endif
+
 
 /* Globals */
 struct globals {
@@ -427,8 +428,8 @@ static void parse_url(const char *src_url, struct host_info *h)
 		} else
 #if ENABLE_FEATURE_WGET_OPENSSL || ENABLE_FEATURE_WGET_SSL_HELPER
 		if (strcmp(url, P_HTTPS) == 0) {
-			h->port = bb_lookup_port(P_HTTPS, "tcp", 443);
-			h->protocol = P_HTTPS;
+			 h->port = bb_lookup_port(P_HTTPS, "tcp", 443);
+			 h->protocol = P_HTTPS;
 		} else
 #endif
 		if (strcmp(url, P_HTTP) == 0) {
@@ -636,7 +637,7 @@ static int spawn_https_helper_openssl(const char *host, unsigned port)
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sp) != 0)
 		/* Kernel can have AF_UNIX support disabled */
 		bb_perror_msg_and_die("socketpair");
-
+	
 	if (!strchr(host, ':'))
 		host = allocated = xasprintf("%s:%u", host, port);
 
@@ -672,7 +673,7 @@ static int spawn_https_helper_openssl(const char *host, unsigned port)
 # endif
 		/* notreached */
 	}
-
+	
 	/* Parent */
 	free(allocated);
 	close(sp[1]);
@@ -696,7 +697,7 @@ static void spawn_https_helper_small(int network_fd)
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sp) != 0)
 		/* Kernel can have AF_UNIX support disabled */
 		bb_perror_msg_and_die("socketpair");
-
+	
 	pid = BB_MMU ? xfork() : xvfork();
 	if (pid == 0) {
 		/* Child */
@@ -825,7 +826,7 @@ static void NOINLINE retrieve_file_data(FILE *dfp)
 				 */
 			}
 #endif
- bump:
+bump:
 			/* Need to do it _every_ second for "stalled" indicator
 			 * to be shown properly.
 			 */
@@ -964,6 +965,7 @@ static void download_one_url(const char *url)
 		char *str;
 		int status;
 
+
 		/* Open socket to http(s) server */
 #if ENABLE_FEATURE_WGET_OPENSSL
 		/* openssl (and maybe ssl_helper) support is configured */
@@ -987,7 +989,7 @@ static void download_one_url(const char *url)
 			goto socket_opened;
 		}
 		sfp = open_socket(lsa);
- socket_opened:
+socket_opened:
 #elif ENABLE_FEATURE_WGET_SSL_HELPER
 		/* Only ssl_helper support is configured */
 		sfp = open_socket(lsa);
@@ -997,6 +999,7 @@ static void download_one_url(const char *url)
 		/* ssl (https) support is not configured */
 		sfp = open_socket(lsa);
 #endif
+
 		/* Send HTTP request */
 		if (use_proxy) {
 			SENDFMT(sfp, "GET %s://%s/%s HTTP/1.1\r\n",
@@ -1182,6 +1185,7 @@ However, in real world it was observed that some web servers
 
 		/* For HTTP, data is pumped over the same connection */
 		dfp = sfp;
+
 	} else {
 		/*
 		 *  FTP session
@@ -1236,19 +1240,27 @@ int wget_main(int argc UNUSED_PARAM, char **argv)
 IF_FEATURE_WGET_TIMEOUT(
 		"timeout\0"          Required_argument "T")
 		/* Ignored: */
-IF_DESKTOP(	"tries\0"            Required_argument "t")
+IF_DESKTOP(
+		"tries\0"            Required_argument "t")
 		"header\0"           Required_argument "\xff"
 		"post-data\0"        Required_argument "\xfe"
 		/* Ignored (we always use PASV): */
-IF_DESKTOP(	"passive-ftp\0"      No_argument       "\xf0")
+IF_DESKTOP(
+		"passive-ftp\0"      No_argument       "\xf0")
 		/* Ignored (we don't do ssl) */
-IF_DESKTOP(	"no-check-certificate\0" No_argument   "\xf0")
+IF_DESKTOP(
+		"no-check-certificate\0" No_argument   "\xf0")
 		/* Ignored (we don't support caching) */
-IF_DESKTOP(	"no-cache\0"         No_argument       "\xf0")
-IF_DESKTOP(	"no-verbose\0"       No_argument       "\xf0")
-IF_DESKTOP(	"no-clobber\0"       No_argument       "\xf0")
-IF_DESKTOP(	"no-host-directories\0" No_argument    "\xf0")
-IF_DESKTOP(	"no-parent\0"        No_argument       "\xf0")
+IF_DESKTOP(
+		"no-cache\0"         No_argument       "\xf0")
+IF_DESKTOP(
+		"no-verbose\0"       No_argument       "\xf0")
+IF_DESKTOP(
+		"no-clobber\0"       No_argument       "\xf0")
+IF_DESKTOP(
+		"no-host-directories\0" No_argument    "\xf0")
+IF_DESKTOP(
+		"no-parent\0"        No_argument       "\xf0")
 		;
 #endif
 
@@ -1283,7 +1295,8 @@ IF_DESKTOP(	"no-parent\0"        No_argument       "\xf0")
 		 * "n::" above says that we accept -n[ARG].
 		 * Specifying "n:" would be a bug: "-n ARG" would eat ARG!
 		 */
-		, &G.fname_out, &G.dir_prefix,
+		,
+		&G.fname_out, &G.dir_prefix,
 		&G.proxy_flag, &G.user_agent,
 		IF_FEATURE_WGET_TIMEOUT(&G.timeout_seconds) IF_NOT_FEATURE_WGET_TIMEOUT(NULL),
 		NULL, /* -t RETRIES */
@@ -1292,6 +1305,7 @@ IF_DESKTOP(	"no-parent\0"        No_argument       "\xf0")
 		IF_FEATURE_WGET_LONG_OPTIONS(, &G.post_data)
 	);
 	argv += optind;
+
 
 #if ENABLE_FEATURE_WGET_LONG_OPTIONS
 	if (headers_llist) {
@@ -1302,13 +1316,12 @@ IF_DESKTOP(	"no-parent\0"        No_argument       "\xf0")
 			size += strlen(ll->data) + 2;
 			ll = ll->link;
 		}
-		G.extra_headers = hdr = xmalloc(size + 1);
+		G.extra_headers = hdr = xmalloc(size+1);
 		while (headers_llist) {
 			int bit;
 			const char *words;
 
-			size = sprintf(hdr, "%s\r\n",
-					(char*)llist_pop(&headers_llist));
+			size = sprintf(hdr, "%s\r\n", (char*)llist_pop(&headers_llist));
 			/* a bit like index_in_substrings but don't match full key */
 			bit = 1;
 			words = wget_user_headers;

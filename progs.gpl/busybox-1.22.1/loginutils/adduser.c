@@ -188,7 +188,11 @@ int adduser_main(int argc UNUSED_PARAM, char **argv)
 	die_if_bad_username(pw.pw_name);
 	if (!pw.pw_dir) {
 		/* create string for $HOME if not specified already */
+#ifdef ELBOX_NECPF_FEATURE
+		pw.pw_dir = "/";
+#else
 		pw.pw_dir = xasprintf("/home/%s", argv[0]);
+#endif
 	}
 	pw.pw_passwd = (char *)"x";
 	if (opts & OPT_SYSTEM_ACCOUNT) {

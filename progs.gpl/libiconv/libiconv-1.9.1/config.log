@@ -1094,9 +1094,9 @@ configure:23248: checking for unistd.h
 configure:23253: result: yes
 configure:23391: checking for canonicalize_file_name
 configure:23441: mips-linux-gcc -o conftest    conftest.c  >&5
-/tmp/ccxMO99c.o: In function `main':
+/tmp/ccpm4tpz.o: In function `main':
 conftest.c:(.text+0x1c): undefined reference to `canonicalize_file_name'
-/tmp/ccxMO99c.o:(.data.rel+0x0): undefined reference to `canonicalize_file_name'
+/tmp/ccpm4tpz.o:(.data.rel+0x0): undefined reference to `canonicalize_file_name'
 collect2: ld returned 1 exit status
 configure:23444: $? = 1
 configure: failed program was:
@@ -1277,9 +1277,9 @@ configure:24531: $? = 0
 configure:24542: result: yes
 configure:24549: checking for _doprnt
 configure:24599: mips-linux-gcc -o conftest    conftest.c  >&5
-/tmp/cciGZTPi.o: In function `main':
+/tmp/ccdH49NR.o: In function `main':
 conftest.c:(.text+0x1c): undefined reference to `_doprnt'
-/tmp/cciGZTPi.o:(.data.rel+0x0): undefined reference to `_doprnt'
+/tmp/ccdH49NR.o:(.data.rel+0x0): undefined reference to `_doprnt'
 collect2: ld returned 1 exit status
 configure:24602: $? = 1
 configure: failed program was:

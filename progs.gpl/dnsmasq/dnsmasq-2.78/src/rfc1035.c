@@ -16,6 +16,54 @@
 
 #include "dnsmasq.h"
 
+#ifdef ELBOX_NECPF_FEATURE
+/* Checking special DNS query for apple, .us, .info */
+int isSpecialDnsQuery(const char *dnsname)
+{
+    if (strstr(dnsname,"apple") || 0 == strcmp(&dnsname[strlen(dnsname)-3],".us") || 0 == strcmp(&dnsname[strlen(dnsname)-5],".info") ||
+        strstr(dnsname,"firmware.aterm.jp") || strstr(dnsname,"ntp.jst.mfeed.ad.jp"))
+        return 1;
+
+    return 0;
+}
+
+int is_netchk(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISREG(path_stat.st_mode);
+}
+
+static void getIpAddrForLan(in_addr_t *ip_addr)
+{
+    unsigned char ip_address[15];
+    int fd;
+    struct ifreq ifr;
+	 
+    /*AF_INET - to define network interface IPv4*/
+    /*Creating soket for it.*/
+    fd = socket(AF_INET, SOCK_DGRAM, 0);
+     
+    /*AF_INET - to define IPv4 Address type.*/
+    ifr.ifr_addr.sa_family = AF_INET;
+     
+    /*eth0 - define the ifr_name - port name
+    where network attached.*/
+    memcpy(ifr.ifr_name, "br0", IFNAMSIZ-1);
+     
+    /*Accessing network interface information by
+    passing address using ioctl.*/
+    ioctl(fd, SIOCGIFADDR, &ifr);
+    /*closing fd*/
+    close(fd);
+     
+    /*Extract IP Address*/
+    strcpy(ip_address,inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
+	
+    *ip_addr = inet_network(ip_address);
+}
+#endif
+
 int extract_name(struct dns_header *header, size_t plen, unsigned char **pp, 
 		 char *name, int isExtract, int extrabytes)
 {
@@ -1622,13 +1670,31 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
 			cp++;
 		    }
 		  
+#ifdef ELBOX_NECPF_FEATURE
+		  int proxy_dns = 0;
+
+		  /* need to check special DNS query and netchk in config file */
+		  if ((is_netchk("tmp/netchk") ==1) && (0 == isSpecialDnsQuery(name)))
+		    proxy_dns = 1;
+		  if (i == 4 || proxy_dns == 1)
+#else 
 		  if (i == 4)
+#endif
 		    {
 		      ans = 1;
 		      sec_data = 0;
 		      if (!dryrun)
 			{
+#ifdef ELBOX_NECPF_FEATURE
+			  if (proxy_dns == 0) {
+			    addr.addr.addr4.s_addr = htonl(a);
+			  } else {
+			    daemon->local_ttl = 0;
+			    getIpAddrForLan(&addr.addr.addr4.s_addr);
+			  }
+#else
 			  addr.addr.addr4.s_addr = htonl(a);
+#endif
 			  log_query(F_FORWARD | F_CONFIG | F_IPV4, name, &addr, NULL);
 			  if (add_resource_record(header, limit, &trunc, nameoffset, &ansp, 
 						  daemon->local_ttl, NULL, type, C_IN, "4", &addr))

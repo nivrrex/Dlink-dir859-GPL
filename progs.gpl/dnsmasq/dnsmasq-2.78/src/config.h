@@ -368,7 +368,9 @@ HAVE_SOCKADDR_SA_LEN
 #endif
 
 #if defined (HAVE_LINUX_NETWORK) && !defined(NO_INOTIFY)
+#ifdef ALPHA_INOTIFY_SUPPORT
 #define HAVE_INOTIFY
+#endif
 #endif
 
 /* Define a string indicating which options are in use.

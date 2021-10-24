@@ -133,6 +133,7 @@
 # define XTABS TAB3
 #endif
 
+#include "../../../include/elbox_config.h"
 
 /* Some libc's forget to declare these, do it ourself */
 
@@ -1753,7 +1754,11 @@ extern const char bb_busybox_exec_path[] ALIGN1;
  * but I want to save a few bytes here */
 extern const char bb_PATH_root_path[] ALIGN1; /* "PATH=/sbin:/usr/sbin:/bin:/usr/bin" */
 #define bb_default_root_path (bb_PATH_root_path + sizeof("PATH"))
+#ifdef ELBOX_NECPF_FEATURE
+#define bb_default_path      (bb_PATH_root_path + sizeof("PATH"))
+#else
 #define bb_default_path      (bb_PATH_root_path + sizeof("PATH=/sbin:/usr/sbin"))
+#endif
 
 extern const int const_int_0;
 extern const int const_int_1;
